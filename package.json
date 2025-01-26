@@ -1,0 +1,17 @@
+{
+  "engines": {
+    "npm": ">=8.3.0"
+  },
+  "dependencies": {
+    "@fastify/static": "^8.0.4",
+    "docusign-esign": "^8.0.1",
+    "dotenv": "^16.4.7",
+    "fastify": "^5.2.0",
+    "form-data": "^4.0.1",
+    "mysql2": "^3.12.0",
+    "node-fetch": "^2.7.0",
+    "pdf-parse": "^1.1.1",
+    "short-uuid": "^5.2.0",
+    "word-extractor": "^1.0.4"
+  }
+}

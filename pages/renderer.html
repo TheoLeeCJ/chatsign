@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Preview Document</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page-container {
+      position: relative;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      background: #fff;
+      max-width: 700px;
+      overflow: hidden;
+    }
+
+    .page-image {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .tab {
+      position: absolute;
+      /* Keep absolute for layering; transform-based positioning follows */
+      padding: 4px 8px;
+      font-size: 14px;
+      color: #000;
+      background-color: rgba(255, 255, 0, 0.7);
+      border: 1px solid #999;
+      border-radius: 4px;
+      cursor: default;
+      position: absolute;
+      top: 0;
+      left: 0;
+      white-space: nowrap;
+      /* Remove top/left usage; will rely on transform in JS */
+    }
+
+    .tab[data-tab-type="signHere"] {
+      background-color: rgba(255, 200, 0, 0.8);
+      font-weight: bold;
+    }
+
+    .tab[data-tab-type="text"] {
+      background-color: rgba(0, 200, 255, 0.8);
+      font-weight: normal;
+    }
+
+    .tab:hover::after {
+      content: attr(data-recipient);
+      position: absolute;
+      top: -25px;
+      left: 0;
+      transform: translateY(-100%);
+      background-color: #333;
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 4px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+      .tab {
+        font-size: 12px;
+        padding: 3px 6px;
+      }
+    }
+
+    .loader,
+    .loader:before,
+    .loader:after {
+      border-radius: 50%;
+      width: 2.5em;
+      height: 2.5em;
+      animation-fill-mode: both;
+      animation: bblFadInOut 1.8s infinite ease-in-out;
+    }
+
+    .loader {
+      color: #FFF;
+      font-size: 7px;
+      position: relative;
+      text-indent: -9999em;
+      transform: translateZ(0);
+      animation-delay: -0.16s;
+    }
+
+    .loader:before,
+    .loader:after {
+      content: '';
+      position: absolute;
+      top: 0;
+    }
+
+    .loader:before {
+      left: -3.5em;
+      animation-delay: -0.32s;
+    }
+
+    .loader:after {
+      left: 3.5em;
+    }
+
+    @keyframes bblFadInOut {
+
+      0%,
+      80%,
+      100% {
+        box-shadow: 0 2.5em 0 -1.3em
+      }
+
+      40% {
+        box-shadow: 0 2.5em 0 0
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="flex items-center justify-between px-4 py-3 bg-gray-800 text-white w-full fixed z-10">
+    <div class="flex items-center overflow-hidden">
+      <span class="material-symbols-outlined text-white text-3xl mr-3">description</span>
+      <div class="flex flex-col">
+        <h1 class="text-lg font-semibold">Preview Agreement</h1>
+        <!-- Subtitle: Filename with ellipsis if too long -->
+        <div id="filenameDisplay" class="text-xs text-gray-300 overflow-ellipsis overflow-hidden whitespace-nowrap max-w-xs" title="">
+        </div>
+      </div>
+    </div>
+
+    <!-- Send Button -->
+    <button id="sendBtn"
+      class="flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors font-semibold">
+      <span class="material-symbols-outlined text-white mr-2">
+        send
+      </span>
+      Send
+    </button>
+  </nav>
+
+  <!-- Main content container -->
+  <div class="flex-1 w-full mx-auto max-w-5xl mt-16">
+    <!-- Container where pages will be rendered -->
+    <div id="document-pages">
+      <div class="flex flex-col justify-center items-center h-96">
+        <span class="loader"></span>
+        <div class="mt-16 font-semibold text-lg text-white">Loading Document...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating "Edit with DocuSign" button, now centered -->
+  <a id="editLinkBtn" href="#" target="_blank"
+    class="fixed bottom-4 left-1/2 transform -translate-x-1/2 flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg transition-colors font-semibold"
+    title="Edit with DocuSign">
+    <span class="material-symbols-outlined text-white mr-2">
+      edit
+    </span>
+    Edit with DocuSign
+  </a>
+
+  <div id="sending-loading" class="fixed z-10 top-0 left-0 w-screen h-screen bg-gray-900 hidden">
+    <div class="flex flex-col justify-center items-center h-96">
+      <span class="loader"></span>
+      <div class="mt-16 font-semibold text-lg text-white">Sending agreement...</div>
+    </div>
+  </div>
+
+  <script>
+    // SweetAlert confirmation on "Send" button
+    const sendBtn = document.getElementById("sendBtn");
+    sendBtn.addEventListener("click", () => {
+      Swal.fire({
+        title: "Confirm finalization and send?",
+        text: "Are you sure you want to finalize and send this document?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#6366F1",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, send it!"
+      }).then(result => {
+        if (result.isConfirmed) {
+          document.getElementById("sending-loading").classList.remove("hidden");
+          fetch(`/docSend?fileId=${location.hash.replace("#", "")}`)
+            .then(response => response.json())
+            .then(() => {
+              document.getElementById("sending-loading").classList.add("hidden");
+              Swal.fire("Sent!", "Your document has been sent.", "success");
+            })
+            .catch(() => {
+              Swal.fire("Error", "There was a problem sending the document.", "error");
+            });
+        }
+      });
+    });
+
+    function getRecipientInfo(recipients, recipientId) {
+      const recipient = recipients.find(r => r.recipientId === recipientId);
+      if (!recipient) return "Unknown recipient";
+      return `${recipient.name} (${recipient.email})`;
+    }
+
+    // Keep track of all tab data so we can reapply positions on resize
+    const allTabsData = [];
+
+    /**
+     * Recalculates the position of all tabs on window resize.
+     */
+    function handleResize() {
+      document.querySelectorAll(".page-container").forEach(pageDiv => {
+        const pageImg = pageDiv.querySelector(".page-image");
+        const tabs = pageDiv.querySelectorAll(".tab");
+
+        // Recalculate scale if the image is loaded
+        if (pageImg && pageImg.naturalWidth && pageImg.naturalHeight) {
+          const scaleX = pageImg.clientWidth / pageImg.naturalWidth;
+          const scaleY = pageImg.clientHeight / pageImg.naturalHeight;
+
+          tabs.forEach(tabDiv => {
+            // We stored the original positions in dataset.x / dataset.y
+            const x = parseFloat(tabDiv.dataset.x);
+            const y = parseFloat(tabDiv.dataset.y);
+
+            const xPos = x * scaleX;
+            const yPos = y * scaleY;
+            // Use transform translate for positioning
+            tabDiv.style.transform = `translate(${xPos}px, ${yPos}px)`;
+          });
+        }
+      });
+    }
+
+    // Listen for window resize
+    window.addEventListener("resize", handleResize);
+
+    /**
+     * Renders the document pages with overlaid tabs.
+     */
+    async function renderDocument() {
+      const fileId = location.hash.replace("#", "");
+      const jsonData = await fetch(`/obtainPreviewData?fileId=${fileId}`).then(res => res.json());
+
+      // Update the floating 'Edit with DocuSign' link if needed
+      const editLinkBtn = document.getElementById("editLinkBtn");
+      editLinkBtn.href = jsonData.editLink || "#";
+
+      document.getElementById("filenameDisplay").innerText = jsonData.filename;
+
+      const container = document.getElementById("document-pages");
+      container.innerHTML = "";
+
+      // Group tabs by pageNumber
+      const tabsByPage = {};
+      jsonData.tabs.forEach(tab => {
+        const pNum = tab.pageNumber;
+        if (!tabsByPage[pNum]) {
+          tabsByPage[pNum] = [];
+        }
+        tabsByPage[pNum].push(tab);
+      });
+
+      // Preload images
+      const imagePromises = jsonData.pages.map(page => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = `data:image/png;base64,${page.imageBase64}`;
+          img.onload = () => {
+            resolve({
+              ...page,
+              naturalWidth: img.naturalWidth,
+              naturalHeight: img.naturalHeight
+            });
+          };
+          img.onerror = reject;
+        });
+      });
+
+      Promise.all(imagePromises)
+        .then(pagesWithDimensions => {
+          pagesWithDimensions.forEach(page => {
+            // Create a container for the page
+            const pageDiv = document.createElement("div");
+            pageDiv.className = "page-container";
+
+            // Create the page image
+            const pageImg = document.createElement("img");
+            pageImg.className = "page-image";
+            pageImg.src = `data:image/png;base64,${page.imageBase64}`;
+            pageImg.alt = page.documentName + " - Page " + page.pageNumber;
+
+            pageDiv.appendChild(pageImg);
+            container.appendChild(pageDiv);
+
+            // Once image is loaded, overlay the tabs
+            pageImg.onload = () => {
+              const scaleX = pageImg.clientWidth / page.naturalWidth;
+              const scaleY = pageImg.clientHeight / page.naturalHeight;
+
+              const pageTabs = tabsByPage[page.pageNumber] || [];
+
+              pageTabs.forEach(tab => {
+                const tabDiv = document.createElement("div");
+                tabDiv.className = "tab";
+                tabDiv.dataset.tabType = tab.tabType;
+                tabDiv.dataset.recipient = getRecipientInfo(jsonData.recipients, tab.recipientId);
+
+                // We'll store the raw x/y in the dataset for later resizing
+                tabDiv.dataset.x = tab.xPosition;
+                tabDiv.dataset.y = tab.yPosition;
+
+                tabDiv.innerText = `${tab.tabLabel}\n(${getRecipientInfo(jsonData.recipients, tab.recipientId)})`;
+
+                // Calculate positions now
+                const xPos = parseFloat(tab.xPosition) * scaleX;
+                const yPos = parseFloat(tab.yPosition) * scaleY;
+
+                // Use transform: translate
+                tabDiv.style.transform = `translate(${xPos}px, ${yPos}px)`;
+
+                pageDiv.appendChild(tabDiv);
+              });
+            };
+          });
+        })
+        .catch(error => {
+          console.error("Error loading images:", error);
+        });
+    }
+
+    // Initialize
+    renderDocument();
+  </script>
+</body>
+
+</html>

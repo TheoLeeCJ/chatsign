@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docusign Account Linked</title>
+  <!-- TailwindCSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Google Material Icons CDN -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Dark mode support -->
+  <script>
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center min-h-screen">
+  <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+    <!-- Checkmark Icon -->
+    <div class="flex justify-center">
+      <span class="material-icons text-6xl text-green-500 dark:text-green-400">
+        check_circle
+      </span>
+    </div>
+
+    <!-- Success Message -->
+    <h1 class="text-2xl font-bold mt-4">Docusign Account Linked!</h1>
+
+    <!-- Description -->
+    <p class="mt-4 text-gray-600 dark:text-gray-300">
+      Your Docusign Account has been linked to your WhatsApp number. You may return to WhatsApp now. Thanks for using ChatSign!
+    </p>
+  </div>
+</body>
+</html>

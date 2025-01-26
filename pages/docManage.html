@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Actions</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue (if needed) -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Page container or any preview area styles, if needed */
+    .page-container {
+      position: relative;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      background: #fff;
+      max-width: 700px;
+      overflow: hidden;
+    }
+
+    .page-image {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Loader styles (spinner) */
+    .loader,
+    .loader:before,
+    .loader:after {
+      border-radius: 50%;
+      width: 2.5em;
+      height: 2.5em;
+      animation-fill-mode: both;
+      animation: bblFadInOut 1.8s infinite ease-in-out;
+    }
+
+    .loader {
+      color: #FFF;
+      font-size: 7px;
+      position: relative;
+      text-indent: -9999em;
+      transform: translateZ(0);
+      animation-delay: -0.16s;
+    }
+
+    .loader:before,
+    .loader:after {
+      content: '';
+      position: absolute;
+      top: 0;
+    }
+
+    .loader:before {
+      left: -3.5em;
+      animation-delay: -0.32s;
+    }
+
+    .loader:after {
+      left: 3.5em;
+    }
+
+    @keyframes bblFadInOut {
+
+      0%,
+      80%,
+      100% {
+        box-shadow: 0 2.5em 0 -1.3em
+      }
+
+      40% {
+        box-shadow: 0 2.5em 0 0
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Navigation Bar -->
+  <nav class="flex items-center justify-between px-4 py-3 bg-gray-900 text-white w-full fixed z-10">
+    <!-- Left side: Title + Subtitle (filename) -->
+    <div class="flex items-center overflow-hidden">
+      <span class="material-symbols-outlined text-white text-3xl mr-3">description</span>
+      <div class="flex flex-col">
+        <h1 class="text-lg font-semibold">Envelope Actions</h1>
+        <!-- Subtitle: Filename with ellipsis if too long -->
+        <div id="filenameDisplay"
+          class="text-xs text-gray-300 overflow-ellipsis overflow-hidden whitespace-nowrap max-w-xs" title="">
+          <!-- Will be set dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Button -->
+    <div class="relative">
+      <button id="actionsBtn"
+        class="flex items-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded transition-colors font-semibold">
+        <span class="material-symbols-outlined text-white mr-1">more_vert</span>
+        Actions
+      </button>
+
+      <!-- Stylish Dropdown -->
+      <div id="actionsDropdown"
+        class="absolute right-0 mt-3 w-72 -z-10 max-w-screen bg-white rounded-md shadow-lg duration-300 transition-all overflow-hidden scale-y-75 origin-top opacity-0 -translate-y-4 pointer-events-none"
+        aria-expanded="false">
+        <!-- "View Envelope" -->
+        <button id="viewEnvelopeBtn"
+          class="w-full text-left flex items-center p-3 hover:bg-gray-100 focus:outline-none">
+          <span class="material-symbols-outlined mr-3 text-gray-700">visibility</span>
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-800">View Envelope</span>
+            <span class="text-sm text-gray-500">View agreement details, fields, and more on DocuSign</span>
+          </div>
+        </button>
+        <!-- "Correct Envelope" -->
+        <button id="correctEnvelopeBtn"
+          class="w-full text-left flex items-center p-3 hover:bg-gray-100 focus:outline-none hidden">
+          <span class="material-symbols-outlined mr-3 text-gray-700">edit</span>
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-800">Correct Envelope</span>
+            <span class="text-sm text-gray-500">Make changes to the agreement's recipient details, fields, and more on
+              DocuSign</span>
+          </div>
+        </button>
+        <!-- "Your DocuSign Home" -->
+        <button id="docusignHomeBtn"
+          class="w-full text-left flex items-center p-3 hover:bg-gray-100 focus:outline-none">
+          <span class="material-symbols-outlined mr-3 text-gray-700">home</span>
+          <div class="flex flex-col">
+            <span class="font-medium text-gray-800">Your DocuSign Home</span>
+            <span class="text-sm text-gray-500">Go to your DocuSign home for more options</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main content container (similar layout to the preview page) -->
+  <div class="flex-1 w-full mx-auto max-w-5xl mt-16" id="document-pages">
+    <!-- Loading state by default -->
+    <div id="loadingState" class="flex flex-col justify-center items-center h-96">
+      <span class="loader"></span>
+      <div class="mt-16 font-semibold text-lg text-white">
+        Loading Document Actions...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const actionsBtn = document.getElementById("actionsBtn");
+    const actionsDropdown = document.getElementById("actionsDropdown");
+
+    let dropdownOpen = false;
+
+    actionsBtn.addEventListener("click", () => {
+      dropdownOpen = !dropdownOpen;
+      if (dropdownOpen) {
+        actionsDropdown.classList.add("z-20")
+        actionsDropdown.classList.remove("scale-y-75", "opacity-0", "-translate-y-4", "pointer-events-none", "-z-10");
+        actionsDropdown.setAttribute("aria-expanded", "true");
+      } else {
+        actionsDropdown.classList.remove("z-20")
+        actionsDropdown.classList.add("scale-y-75", "opacity-0", "opacity-0", "-translate-y-4", "pointer-events-none", "-z-10");
+        actionsDropdown.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    // Optional: clicking outside to close the dropdown
+    window.addEventListener("click", (e) => {
+      if (!actionsBtn.contains(e.target) && !actionsDropdown.contains(e.target)) {
+        actionsDropdown.classList.add("dropdown-hidden");
+        actionsDropdown.classList.remove("dropdown-visible");
+        actionsDropdown.setAttribute("aria-expanded", "false");
+        dropdownOpen = false;
+      }
+    });
+
+    async function fetchActionsData() {
+      const token = location.hash?.replace("#", "");
+      if (!token) alert("No token specified");
+
+      const response = await fetch(`/obtainManageData`, {
+        headers: {
+          Authorization: token
+        }
+      });
+      const data = await response.json();
+      return data;
+    }
+
+    function populateUIWithData(data) {
+      // Hide loading state
+      const loadingState = document.getElementById("loadingState");
+      if (loadingState) {
+        loadingState.style.display = "none";
+      }
+
+      // Show/hide the "Correct Envelope" button
+      const correctEnvelopeBtn = document.getElementById("correctEnvelopeBtn");
+      if (data.showCorrectButton) {
+        correctEnvelopeBtn.classList.remove("hidden");
+      }
+
+      // Update filename in the nav (subtitle)
+      const filenameDisplay = document.getElementById("filenameDisplay");
+      if (filenameDisplay) {
+        filenameDisplay.textContent = data.filename;
+        filenameDisplay.title = data.filename; // so hover shows full name
+      }
+
+      // Handle pages. If none, show a simple "No pages" message.
+      if (!data.pages || data.pages.length === 0) {
+        const docPages = document.getElementById("document-pages");
+        docPages.innerHTML = `
+          <div class="flex flex-col justify-center items-center h-96">
+            <div class="text-white font-semibold text-lg">No pages to display</div>
+          </div>
+        `;
+      } else {
+        if (data.pages && data.pages.length > 0) {
+          const docPages = document.getElementById("document-pages");
+          // Clear out any existing content
+          docPages.innerHTML = "";
+
+          // Preload all page images first
+          const imagePromises = data.pages.map(page => {
+            return new Promise((resolve, reject) => {
+              const img = new Image();
+              img.src = `data:image/png;base64,${page.imageBase64}`;
+              img.onload = () => {
+                resolve({
+                  ...page,
+                  naturalWidth: img.naturalWidth,
+                  naturalHeight: img.naturalHeight
+                });
+              };
+              img.onerror = reject;
+            });
+          });
+
+          Promise.all(imagePromises)
+            .then(pagesWithDimensions => {
+              pagesWithDimensions.forEach(page => {
+                const pageDiv = document.createElement("div");
+                pageDiv.className = "page-container";
+
+                const pageImg = document.createElement("img");
+                pageImg.className = "page-image";
+                pageImg.src = `data:image/png;base64,${page.imageBase64}`;
+
+                // Append image to container
+                pageDiv.appendChild(pageImg);
+                docPages.appendChild(pageDiv);
+              });
+            })
+            .catch(error => {
+              console.error("Error loading images:", error);
+              docPages.innerHTML = `Error loading pages`;
+            });
+        } else {
+          // If no pages exist, show a simple message
+          const docPages = document.getElementById("document-pages");
+          docPages.innerHTML = `No pages`;
+        }
+
+      }
+    }
+
+    (async () => {
+      try {
+        const data = await fetchActionsData();
+        populateUIWithData(data);
+      } catch (e) {
+        console.error("Error fetching actions data:", e);
+      }
+    })();
+
+    function requestUrl(action) {
+      fetch(`/docManage?action=${action}`, {
+        method: "post",
+        headers: {
+          Authorization: location.hash?.replace("#", "")
+        },
+      }).then(res => res.json()).then(res => {
+        window.open(res.url, "_blank");
+      });
+    }
+
+    const viewEnvelopeBtn = document.getElementById("viewEnvelopeBtn");
+    viewEnvelopeBtn.addEventListener("click", () => {
+      Swal.fire("View Envelope", "Navigating to the agreement details on DocuSign. This may take a few seconds...", "info");
+      requestUrl("viewEnvelope");
+    });
+
+    const correctEnvelopeBtn = document.getElementById("correctEnvelopeBtn");
+    correctEnvelopeBtn.addEventListener("click", () => {
+      Swal.fire("Correct Envelope", "Navigating to correct the envelope on DocuSign. This may take a few seconds...", "info");
+      requestUrl("makeChanges");
+    });
+
+    const docusignHomeBtn = document.getElementById("docusignHomeBtn");
+    docusignHomeBtn.addEventListener("click", () => {
+      Swal.fire("Your DocuSign Home", "Navigating to DocuSign home. This may take a few seconds...", "info");
+      requestUrl("allOptions");
+    });
+  </script>
+</body>
+
+</html>
