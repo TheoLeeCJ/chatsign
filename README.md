@@ -26,7 +26,7 @@ The agent is also able to **browse agreements autonomously** when more informati
 
 ### AI Agreement QnA Bot
 
-![AI Agreement QnA Bot GIF](https://i.imgur.com/PG3QBbj.gif)
+![AI Agreement QnA Bot GIF](chatsign-qna-bot.gif)
 
 ChatSign also empowers recipients to understand their agreements better with an AI chatbot which answers questions about a particular agreement. Crucially, we designed the chatbot to always **support its answers with direct quotes from the agreement whenever possible**, reducing AI hallucinations and ensuring its responses are grounded in the actual text of the agreement.
 
