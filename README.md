@@ -1,3 +1,7 @@
+[![Click to watch ChatSign video](https://i.imgur.com/6OVeHjW.png)](https://www.youtube.com/watch?v=ruz7TEFnJI4)
+
+Click to watch video: https://www.youtube.com/watch?v=ruz7TEFnJI4
+
 ## Inspiration
 
 Small businesses often conduct business on disparate platforms like email and WhatsApp due to their convenience and ubiquity. This leads to the **agreement trap, where valuable agreement data is trapped inside myriad disorganized systems**, hindering decision making and lowering efficiency.
