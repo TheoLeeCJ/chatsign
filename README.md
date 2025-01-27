@@ -1,6 +1,6 @@
-[![Click to watch ChatSign video](https://i.imgur.com/6OVeHjW.png)](https://www.youtube.com/watch?v=ruz7TEFnJI4)
+[![Click to watch ChatSign video](https://i.imgur.com/6OVeHjW.png)](https://www.youtube.com/watch?v=jSrlsSxfOAY)
 
-Click to watch video: https://www.youtube.com/watch?v=ruz7TEFnJI4
+Click to watch video: https://www.youtube.com/watch?v=jSrlsSxfOAY
 
 ## Inspiration
 
