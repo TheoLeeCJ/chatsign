@@ -10,7 +10,7 @@ In the face of this problem, we wondered if we could present Docusign's Intellig
 
 ## What it does
 
-ChatSign enables small businesses to create, ask questions about, manage and sign agreements with nothing more than a convenient WhatsApp message, acting as a personal assistant for agreements.
+ChatSign enables small businesses to create, ask questions about, manage and receive agreements with nothing more than a convenient WhatsApp message, acting as a personal assistant for agreements.
 
 ### Testing Instructions
 
